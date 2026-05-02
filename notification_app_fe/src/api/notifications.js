@@ -1,20 +1,7 @@
-/**
- * Notification API Module
- *
- * Handles all HTTP communication with the evaluation service API.
- * Every fetch call is wrapped with Log() calls for observability.
- */
-
 import { Log, setToken } from "logging-middleware";
 
-/* ------------------------------------------------------------------ */
-/*  API Configuration                                                  */
-/* ------------------------------------------------------------------ */
-
-/** Base URL — proxied via Vite dev server to avoid CORS */
 const BASE_URL = "/api";
 
-/** Credentials for token acquisition */
 const CREDENTIALS = {
   email:        "balaji_mallepalli@srmap.edu.in",
   name:         "balaji mallepalli",
@@ -24,30 +11,12 @@ const CREDENTIALS = {
   clientSecret: "xcQfdntQFkkatfMc",
 };
 
-/* ------------------------------------------------------------------ */
-/*  Module state                                                       */
-/* ------------------------------------------------------------------ */
-
-/** Cached Bearer token — refreshed when expired */
 let cachedToken = "";
-
-/** Token expiration timestamp (epoch seconds) */
 let tokenExpiresAt = 0;
 
-/* ------------------------------------------------------------------ */
-/*  Auth                                                               */
-/* ------------------------------------------------------------------ */
-
-/**
- * Obtain (or re-use) a valid Bearer token from the auth endpoint.
- * Automatically refreshes if the cached token has expired.
- *
- * @returns {Promise<string>} The access_token
- */
 export async function getAuthToken() {
   const now = Math.floor(Date.now() / 1000);
 
-  // Return cached token if still valid (with 60s buffer)
   if (cachedToken && tokenExpiresAt > now + 60) {
     return cachedToken;
   }
@@ -69,11 +38,9 @@ export async function getAuthToken() {
     const data = await response.json();
     cachedToken = data.access_token;
     tokenExpiresAt = data.expires_in;
-
-    // Set token on the logging middleware for authenticated log calls
     setToken(cachedToken);
 
-    Log("frontend", "info", "api", "Auth token acquired successfully");
+    Log("frontend", "info", "api", "Auth token acquired");
     return cachedToken;
   } catch (error) {
     Log("frontend", "error", "api", `Auth error: ${error.message}`);
@@ -81,65 +48,64 @@ export async function getAuthToken() {
   }
 }
 
-/* ------------------------------------------------------------------ */
-/*  Notifications                                                      */
-/* ------------------------------------------------------------------ */
-
-/**
- * Fetch a page of notifications from the evaluation service.
- *
- * @param {object} params
- * @param {number} [params.page=1]              — Page number (1-indexed)
- * @param {number} [params.limit=10]            — Items per page
- * @param {string} [params.notificationType]    — Filter: "Event"|"Result"|"Placement"
- * @returns {Promise<Array<{ID: string, Type: string, Message: string, Timestamp: string}>>}
- */
+// Fetch notifications with retry logic for transient 502/503/504 errors
 export async function fetchNotifications({ page = 1, limit = 10, notificationType } = {}) {
   Log("frontend", "info", "api", `Fetching notifications — page=${page}, limit=${limit}, type=${notificationType || "all"}`);
 
-  try {
-    const token = await getAuthToken();
+  const MAX_RETRIES = 3;
+  const RETRY_STATUSES = [502, 503, 504];
 
-    // Build query string
-    const params = new URLSearchParams();
-    params.set("page", String(page));
-    params.set("limit", String(limit));
-    if (notificationType) {
-      params.set("notification_type", notificationType);
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const token = await getAuthToken();
+
+      const params = new URLSearchParams();
+      params.set("page", String(page));
+      params.set("limit", String(limit));
+      if (notificationType) {
+        params.set("notification_type", notificationType);
+      }
+
+      const url = `${BASE_URL}/notifications?${params.toString()}`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (RETRY_STATUSES.includes(response.status) && attempt < MAX_RETRIES) {
+        const delayMs = 500 * Math.pow(2, attempt - 1);
+        Log("frontend", "warn", "api", `HTTP ${response.status} — retrying in ${delayMs}ms`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        continue;
+      }
+
+      if (!response.ok) {
+        Log("frontend", "error", "api", `Failed to fetch: HTTP ${response.status}`);
+        throw new Error(`Fetch failed: HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const notifications = data.notifications || [];
+
+      Log("frontend", "info", "api", `Fetched ${notifications.length} notifications (page ${page})`);
+      return notifications;
+    } catch (error) {
+      if (attempt === MAX_RETRIES) {
+        Log("frontend", "error", "api", `Fetch error after ${MAX_RETRIES} attempts: ${error.message}`);
+        throw error;
+      }
+      const delayMs = 500 * Math.pow(2, attempt - 1);
+      Log("frontend", "warn", "api", `Attempt ${attempt} failed — retrying in ${delayMs}ms`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
     }
-
-    const url = `${BASE_URL}/notifications?${params.toString()}`;
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      Log("frontend", "error", "api", `Failed to fetch notifications: HTTP ${response.status}`);
-      throw new Error(`Fetch failed: HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
-    const notifications = data.notifications || [];
-
-    Log("frontend", "info", "api", `Fetched ${notifications.length} notifications (page ${page})`);
-    return notifications;
-  } catch (error) {
-    Log("frontend", "error", "api", `Notification fetch error: ${error.message}`);
-    throw error;
   }
 }
 
-/**
- * Fetch ALL notifications by paginating through every available page.
- * Used by the Priority Inbox to rank the complete dataset.
- *
- * @returns {Promise<Array<{ID: string, Type: string, Message: string, Timestamp: string}>>}
- */
+// Fetch ALL notifications by paginating through every page
 export async function fetchAllNotifications() {
   Log("frontend", "info", "api", "Fetching ALL notifications for priority ranking");
 

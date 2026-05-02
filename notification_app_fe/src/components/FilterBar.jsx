@@ -1,22 +1,6 @@
-/**
- * FilterBar Component
- *
- * Clean, monochrome filter tabs using outlined chips.
- * Active state uses a filled dark chip for clear visual hierarchy.
- */
-
 import { Box, Chip } from "@mui/material";
-import {
-  InboxOutlined,
-  EventOutlined,
-  SchoolOutlined,
-  WorkOutlined,
-} from "@mui/icons-material";
+import { InboxOutlined, EventOutlined, SchoolOutlined, WorkOutlined } from "@mui/icons-material";
 import { Log } from "logging-middleware";
-
-/* ------------------------------------------------------------------ */
-/*  Filter definitions                                                 */
-/* ------------------------------------------------------------------ */
 
 const FILTERS = [
   { label: "All", value: null, icon: <InboxOutlined sx={{ fontSize: 16 }} /> },
@@ -25,28 +9,16 @@ const FILTERS = [
   { label: "Placement", value: "Placement", icon: <WorkOutlined sx={{ fontSize: 16 }} /> },
 ];
 
-/* ------------------------------------------------------------------ */
-/*  Component                                                          */
-/* ------------------------------------------------------------------ */
-
 export default function FilterBar({ activeFilter, onFilterChange }) {
   const handleClick = (value) => {
-    Log("frontend", "info", "component", `FilterBar: filter changed to "${value || "all"}"`);
+    Log("frontend", "info", "component", `Filter changed to "${value || "all"}"`);
     onFilterChange(value);
   };
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        gap: 1,
-        flexWrap: "wrap",
-        mb: 3,
-      }}
-    >
+    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 3 }}>
       {FILTERS.map((filter) => {
         const isActive = activeFilter === filter.value;
-
         return (
           <Chip
             key={filter.label}
@@ -55,17 +27,13 @@ export default function FilterBar({ activeFilter, onFilterChange }) {
             onClick={() => handleClick(filter.value)}
             variant={isActive ? "filled" : "outlined"}
             sx={{
-              px: 0.5,
-              py: 2.2,
-              fontSize: "0.8rem",
+              px: 0.5, py: 2.2, fontSize: "0.8rem",
               fontWeight: isActive ? 600 : 400,
               borderColor: isActive ? "transparent" : "#e4e4e7",
               backgroundColor: isActive ? "#18181b" : "transparent",
               color: isActive ? "#fafafa" : "#71717a",
               transition: "all 0.15s ease",
-              "& .MuiChip-icon": {
-                color: isActive ? "#fafafa" : "#a1a1aa",
-              },
+              "& .MuiChip-icon": { color: isActive ? "#fafafa" : "#a1a1aa" },
               "&:hover": {
                 backgroundColor: isActive ? "#27272a" : "#f4f4f5",
                 borderColor: isActive ? "transparent" : "#d4d4d8",

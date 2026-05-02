@@ -1,57 +1,23 @@
-/**
- * usePriorityInbox Hook
- *
- * Fetches all notifications, applies the priority ranking algorithm,
- * and returns the top N most important items. Uses the same MinHeap
- * strategy as the backend for consistency.
- */
-
 import { useState, useEffect, useCallback } from "react";
 import { fetchAllNotifications } from "../api/notifications";
 import { Log } from "logging-middleware";
 
-/* ------------------------------------------------------------------ */
-/*  Priority scoring (mirrored from backend)                           */
-/* ------------------------------------------------------------------ */
+const TYPE_WEIGHTS = { Placement: 3, Result: 2, Event: 1 };
 
-/** Type weights: Placement > Result > Event */
-const TYPE_WEIGHTS = {
-  Placement: 3,
-  Result:    2,
-  Event:     1,
-};
-
-/**
- * Compute a composite priority score.
- * Higher score = higher priority.
- *
- * @param {{Type: string, Timestamp: string}} notification
- * @returns {number}
- */
 function computeScore(notification) {
   const weight = TYPE_WEIGHTS[notification.Type] || 0;
   const timestampMs = new Date(notification.Timestamp).getTime();
   return weight * 1e13 + timestampMs;
 }
 
-/* ------------------------------------------------------------------ */
-/*  MinHeap (client-side, mirrors backend implementation)              */
-/* ------------------------------------------------------------------ */
-
-/**
- * Fixed-capacity MinHeap that retains only the top-K highest-scored items.
- */
 class MinHeap {
   constructor(capacity) {
     this.capacity = capacity;
     this.heap = [];
   }
 
-  get size() {
-    return this.heap.length;
-  }
+  get size() { return this.heap.length; }
 
-  /** Insert an item; evict the min if over capacity and new item is larger */
   insert(notification, score) {
     if (this.size < this.capacity) {
       this.heap.push({ notification, score });
@@ -62,16 +28,12 @@ class MinHeap {
     }
   }
 
-  /** Extract all items sorted highest-priority first */
   extractSorted() {
     const sorted = [];
     while (this.size > 0) {
       sorted.push(this.heap[0].notification);
       const last = this.heap.pop();
-      if (this.size > 0) {
-        this.heap[0] = last;
-        this._siftDown(0);
-      }
+      if (this.size > 0) { this.heap[0] = last; this._siftDown(0); }
     }
     sorted.reverse();
     return sorted;
@@ -83,9 +45,7 @@ class MinHeap {
       if (this.heap[index].score < this.heap[parentIdx].score) {
         [this.heap[index], this.heap[parentIdx]] = [this.heap[parentIdx], this.heap[index]];
         index = parentIdx;
-      } else {
-        break;
-      }
+      } else break;
     }
   }
 
@@ -100,28 +60,11 @@ class MinHeap {
       if (smallest !== index) {
         [this.heap[index], this.heap[smallest]] = [this.heap[smallest], this.heap[index]];
         index = smallest;
-      } else {
-        break;
-      }
+      } else break;
     }
   }
 }
 
-/* ------------------------------------------------------------------ */
-/*  Hook                                                               */
-/* ------------------------------------------------------------------ */
-
-/**
- * Custom hook that returns the top N priority-ranked notifications.
- *
- * @param {number} topN — Number of top notifications to return (10, 15, 20, etc.)
- * @returns {{
- *   priorityNotifications: Array,
- *   loading: boolean,
- *   error: string|null,
- *   refetch: Function,
- * }}
- */
 export function usePriorityInbox(topN = 10) {
   const [priorityNotifications, setPriorityNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -130,26 +73,19 @@ export function usePriorityInbox(topN = 10) {
   const fetchAndRank = useCallback(async () => {
     setLoading(true);
     setError(null);
-
     Log("frontend", "info", "hook", `usePriorityInbox fetching — topN=${topN}`);
 
     try {
       const allNotifications = await fetchAllNotifications();
-
-      // Build a MinHeap of size topN and process all notifications
       const heap = new MinHeap(topN);
+
       for (const notification of allNotifications) {
-        const score = computeScore(notification);
-        heap.insert(notification, score);
+        heap.insert(notification, computeScore(notification));
       }
 
       const ranked = heap.extractSorted();
       setPriorityNotifications(ranked);
-
-      Log(
-        "frontend", "info", "hook",
-        `usePriorityInbox ranked ${ranked.length} notifications from ${allNotifications.length} total`
-      );
+      Log("frontend", "info", "hook", `Ranked ${ranked.length} from ${allNotifications.length} total`);
     } catch (err) {
       setError(err.message);
       Log("frontend", "error", "hook", `usePriorityInbox error: ${err.message}`);
@@ -158,14 +94,7 @@ export function usePriorityInbox(topN = 10) {
     }
   }, [topN]);
 
-  useEffect(() => {
-    fetchAndRank();
-  }, [fetchAndRank]);
+  useEffect(() => { fetchAndRank(); }, [fetchAndRank]);
 
-  return {
-    priorityNotifications,
-    loading,
-    error,
-    refetch: fetchAndRank,
-  };
+  return { priorityNotifications, loading, error, refetch: fetchAndRank };
 }
