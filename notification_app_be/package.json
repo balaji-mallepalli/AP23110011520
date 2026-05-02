@@ -1,0 +1,14 @@
+{
+  "name": "notification-app-be",
+  "version": "1.0.0",
+  "description": "Campus notification backend — priority inbox algorithm",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "logging-middleware": "file:../logging_middleware"
+  },
+  "license": "MIT"
+}
