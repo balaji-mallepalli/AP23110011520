@@ -1,11 +1,8 @@
 /**
  * All Notifications Page
  *
- * Displays every notification from the campus system with:
- *   - Type-based filtering (Event / Result / Placement)
- *   - Pagination (10 per page)
- *   - Visual distinction between read and unread items
- *   - Responsive grid layout
+ * Clean dashboard layout showing all notifications with
+ * type filtering, pagination, and read/unread tracking.
  */
 
 import { useEffect } from "react";
@@ -17,16 +14,11 @@ import {
   Alert,
   Fade,
 } from "@mui/material";
-import { NotificationsActiveOutlined } from "@mui/icons-material";
 import NotificationCard from "../components/NotificationCard";
 import FilterBar from "../components/FilterBar";
 import PaginationBar from "../components/PaginationBar";
 import { useNotifications } from "../hooks/useNotifications";
 import { Log } from "logging-middleware";
-
-/* ------------------------------------------------------------------ */
-/*  Component                                                          */
-/* ------------------------------------------------------------------ */
 
 export default function AllNotifications() {
   const {
@@ -40,37 +32,22 @@ export default function AllNotifications() {
     hasMore,
   } = useNotifications({ initialPage: 1, limit: 10 });
 
-  // Log page load
   useEffect(() => {
     Log("frontend", "info", "page", "All Notifications page loaded");
   }, []);
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: "auto", px: { xs: 2, md: 4 }, py: 4 }}>
+    <Box sx={{ maxWidth: 1200, mx: "auto", px: { xs: 2, md: 3 }, py: 4 }}>
       {/* Page header */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
-          <NotificationsActiveOutlined
-            sx={{
-              fontSize: 32,
-              background: "linear-gradient(135deg, #06b6d4, #a855f7)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          />
-          <Typography
-            variant="h4"
-            sx={{
-              background: "linear-gradient(135deg, #06b6d4, #a855f7)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            All Notifications
-          </Typography>
-        </Box>
+      <Box sx={{ mb: 3 }}>
+        <Typography
+          variant="h4"
+          sx={{ mb: 0.5 }}
+        >
+          All Notifications
+        </Typography>
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          Browse all campus notifications. Click a notification to mark it as read.
+          Browse all campus notifications. Click a card to mark it as read.
         </Typography>
       </Box>
 
@@ -80,21 +57,14 @@ export default function AllNotifications() {
         onFilterChange={setNotificationType}
       />
 
-      {/* Loading spinner */}
+      {/* Loading */}
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-          <CircularProgress
-            sx={{
-              color: "#06b6d4",
-              "& .MuiCircularProgress-circle": {
-                strokeLinecap: "round",
-              },
-            }}
-          />
+          <CircularProgress size={28} sx={{ color: "#18181b" }} />
         </Box>
       )}
 
-      {/* Error alert */}
+      {/* Error */}
       {error && (
         <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
           {error}
@@ -103,26 +73,27 @@ export default function AllNotifications() {
 
       {/* Notification grid */}
       {!loading && !error && (
-        <Fade in timeout={400}>
+        <Fade in timeout={300}>
           <Box>
             {notifications.length === 0 ? (
               <Box sx={{ textAlign: "center", py: 8, color: "text.secondary" }}>
-                <Typography variant="h6">No notifications found</Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                  No notifications found
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 0.5 }}>
                   Try changing the filter or check back later.
                 </Typography>
               </Box>
             ) : (
               <Grid container spacing={2}>
                 {notifications.map((notification) => (
-                  <Grid item xs={12} sm={6} md={4} key={notification.ID}>
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={notification.ID}>
                     <NotificationCard notification={notification} />
                   </Grid>
                 ))}
               </Grid>
             )}
 
-            {/* Pagination */}
             {notifications.length > 0 && (
               <PaginationBar
                 page={page}

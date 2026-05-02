@@ -1,134 +1,150 @@
 /**
  * MUI Theme Configuration
  *
- * A polished dark theme with vibrant accent colors for the campus
- * notification system. Uses a deep navy background with cyan/purple
- * accent gradients for a premium, modern aesthetic.
+ * Clean, professional light theme inspired by modern dashboard UIs.
+ * Monochrome palette with subtle accents for notification types.
  */
 
 import { createTheme } from "@mui/material/styles";
 
-/**
- * Custom colour palette constants.
- * Using HSL-based values for precise control over saturation and lightness.
- */
-const PALETTE = {
-  background: {
-    default: "#0a0e1a",    // Deep navy — main app background
-    paper:   "#111827",    // Slightly lighter — card surfaces
-    card:    "#1a2235",    // Card background with subtle distinction
-  },
-  primary: {
-    main:  "#06b6d4",      // Cyan 500 — primary accent
-    light: "#22d3ee",      // Cyan 400 — hover states
-    dark:  "#0891b2",      // Cyan 600 — pressed states
-  },
-  secondary: {
-    main:  "#a855f7",      // Purple 500 — secondary accent
-    light: "#c084fc",      // Purple 400
-    dark:  "#7c3aed",      // Violet 600
-  },
-  success: {
-    main: "#10b981",       // Emerald 500 — Result type badge
-  },
-  warning: {
-    main: "#f59e0b",       // Amber 500 — Event type badge
-  },
-  error: {
-    main: "#ef4444",       // Red 500 — errors
-  },
-  text: {
-    primary:   "#f1f5f9",  // Slate 100
-    secondary: "#94a3b8",  // Slate 400
-    disabled:  "#475569",  // Slate 600
-  },
-};
-
 const theme = createTheme({
   palette: {
-    mode: "dark",
-    background: PALETTE.background,
-    primary:    PALETTE.primary,
-    secondary:  PALETTE.secondary,
-    success:    PALETTE.success,
-    warning:    PALETTE.warning,
-    error:      PALETTE.error,
-    text:       PALETTE.text,
+    mode: "light",
+    background: {
+      default: "#fafafa",
+      paper: "#ffffff",
+    },
+    primary: {
+      main: "#18181b",      // Zinc 900
+      light: "#3f3f46",     // Zinc 700
+      dark: "#09090b",      // Zinc 950
+    },
+    secondary: {
+      main: "#71717a",      // Zinc 500
+      light: "#a1a1aa",     // Zinc 400
+      dark: "#52525b",      // Zinc 600
+    },
+    text: {
+      primary: "#09090b",   // Zinc 950
+      secondary: "#71717a", // Zinc 500
+      disabled: "#a1a1aa",  // Zinc 400
+    },
+    divider: "#e4e4e7",     // Zinc 200
+    success: {
+      main: "#16a34a",      // Green 600 — for Result badges
+    },
+    warning: {
+      main: "#ca8a04",      // Yellow 600 — for Event badges
+    },
+    error: {
+      main: "#dc2626",      // Red 600
+    },
   },
   typography: {
-    fontFamily: "'Inter', 'Roboto', 'Helvetica Neue', sans-serif",
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
     h4: {
       fontWeight: 700,
-      letterSpacing: "-0.02em",
+      fontSize: "1.5rem",
+      letterSpacing: "-0.025em",
+      color: "#09090b",
     },
     h5: {
       fontWeight: 600,
-      letterSpacing: "-0.01em",
+      fontSize: "1.25rem",
+      letterSpacing: "-0.02em",
     },
     h6: {
       fontWeight: 600,
+      fontSize: "1rem",
+    },
+    subtitle2: {
+      fontWeight: 500,
+      fontSize: "0.875rem",
+      color: "#71717a",
     },
     body1: {
-      fontSize: "0.95rem",
+      fontSize: "0.875rem",
       lineHeight: 1.6,
     },
     body2: {
-      fontSize: "0.85rem",
-      color: PALETTE.text.secondary,
+      fontSize: "0.75rem",
+      color: "#71717a",
     },
   },
   shape: {
-    borderRadius: 12,
+    borderRadius: 8,
   },
   components: {
-    /** Card styling — glassmorphic effect with subtle border */
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundColor: "#fafafa",
+        },
+      },
+    },
+    /** Card — clean border, subtle shadow, hover lift */
     MuiCard: {
       styleOverrides: {
         root: {
-          background: PALETTE.background.card,
-          border: "1px solid rgba(255, 255, 255, 0.06)",
-          boxShadow: "0 4px 24px rgba(0, 0, 0, 0.25)",
-          transition: "transform 0.2s ease, box-shadow 0.2s ease",
+          border: "1px solid #e4e4e7",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)",
+          transition: "box-shadow 0.2s ease, transform 0.15s ease",
           "&:hover": {
-            transform: "translateY(-2px)",
-            boxShadow: "0 8px 32px rgba(6, 182, 212, 0.15)",
+            boxShadow: "0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04)",
           },
         },
       },
     },
-    /** Chip styling — pill shape with subtle glow */
+    /** Chip — clean, minimal pill */
     MuiChip: {
       styleOverrides: {
         root: {
-          fontWeight: 600,
+          fontWeight: 500,
           fontSize: "0.75rem",
-          letterSpacing: "0.04em",
-          textTransform: "uppercase",
+          letterSpacing: "0.01em",
+          borderRadius: 6,
         },
       },
     },
-    /** Button styling — gradient background on contained variant */
+    /** Button — clean outline style */
     MuiButton: {
       styleOverrides: {
-        contained: {
-          background: `linear-gradient(135deg, ${PALETTE.primary.main}, ${PALETTE.secondary.main})`,
-          boxShadow: "0 4px 16px rgba(6, 182, 212, 0.3)",
+        root: {
+          textTransform: "none",
+          fontWeight: 600,
+          borderRadius: 6,
+        },
+        outlined: {
+          borderColor: "#e4e4e7",
+          color: "#18181b",
           "&:hover": {
-            background: `linear-gradient(135deg, ${PALETTE.primary.light}, ${PALETTE.secondary.light})`,
-            boxShadow: "0 6px 20px rgba(6, 182, 212, 0.4)",
+            backgroundColor: "#f4f4f5",
+            borderColor: "#d4d4d8",
+          },
+        },
+        contained: {
+          backgroundColor: "#18181b",
+          color: "#fafafa",
+          boxShadow: "none",
+          "&:hover": {
+            backgroundColor: "#27272a",
+            boxShadow: "none",
           },
         },
       },
     },
-    /** Pagination — styled for dark mode */
+    /** Pagination — monochrome selected state */
     MuiPaginationItem: {
       styleOverrides: {
         root: {
-          color: PALETTE.text.secondary,
+          color: "#71717a",
           "&.Mui-selected": {
-            background: `linear-gradient(135deg, ${PALETTE.primary.main}, ${PALETTE.secondary.main})`,
-            color: "#fff",
+            backgroundColor: "#18181b",
+            color: "#fafafa",
             fontWeight: 600,
+            "&:hover": {
+              backgroundColor: "#27272a",
+            },
           },
         },
       },

@@ -1,19 +1,25 @@
 /**
  * NotificationCard Component
  *
- * Renders a single notification as an MUI Card with:
- *   - Coloured type chip (Placement/Result/Event)
- *   - Unread indicator badge
- *   - Timestamp display
- *   - Click-to-mark-as-read functionality
+ * Clean, professional card layout inspired by modern dashboard UIs.
+ * Structure: Header (title + icon) → Content (message + description) → Footer
+ * Matches the monochrome card-display aesthetic with subtle type accents.
  */
 
-import { Card, CardContent, Chip, Typography, Box, Badge } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  IconButton,
+  Chip,
+} from "@mui/material";
 import {
   WorkOutlined,
   SchoolOutlined,
   EventOutlined,
-  FiberManualRecord,
+  CircleOutlined,
+  CheckCircleOutlined,
 } from "@mui/icons-material";
 import { useReadContext } from "../state/ReadContext";
 import { Log } from "logging-middleware";
@@ -22,40 +28,34 @@ import { Log } from "logging-middleware";
 /*  Type-specific configuration                                        */
 /* ------------------------------------------------------------------ */
 
-/**
- * Visual config per notification type — icon, colour, and label.
- */
 const TYPE_CONFIG = {
   Placement: {
-    icon: <WorkOutlined sx={{ fontSize: 16 }} />,
-    color: "#a855f7",
-    bgColor: "rgba(168, 85, 247, 0.12)",
+    icon: WorkOutlined,
+    color: "#7c3aed",       // Violet 600
+    bg: "#f5f3ff",          // Violet 50
+    borderColor: "#ddd6fe", // Violet 200
     label: "Placement",
   },
   Result: {
-    icon: <SchoolOutlined sx={{ fontSize: 16 }} />,
-    color: "#10b981",
-    bgColor: "rgba(16, 185, 129, 0.12)",
+    icon: SchoolOutlined,
+    color: "#16a34a",       // Green 600
+    bg: "#f0fdf4",          // Green 50
+    borderColor: "#bbf7d0", // Green 200
     label: "Result",
   },
   Event: {
-    icon: <EventOutlined sx={{ fontSize: 16 }} />,
-    color: "#f59e0b",
-    bgColor: "rgba(245, 158, 11, 0.12)",
+    icon: EventOutlined,
+    color: "#ca8a04",       // Yellow 600
+    bg: "#fefce8",          // Yellow 50
+    borderColor: "#fef08a", // Yellow 200
     label: "Event",
   },
 };
 
 /* ------------------------------------------------------------------ */
-/*  Helper                                                             */
+/*  Timestamp formatter                                                */
 /* ------------------------------------------------------------------ */
 
-/**
- * Format an API timestamp string into a human-friendly relative or absolute form.
- *
- * @param {string} timestamp — e.g. "2026-04-22 17:51:30"
- * @returns {string}
- */
 function formatTimestamp(timestamp) {
   const date = new Date(timestamp);
   const now = new Date();
@@ -69,13 +69,10 @@ function formatTimestamp(timestamp) {
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
 
-  // Fallback to formatted date
   return date.toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
   });
 }
 
@@ -83,15 +80,12 @@ function formatTimestamp(timestamp) {
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-/**
- * @param {{ notification: {ID: string, Type: string, Message: string, Timestamp: string}, showReadStatus?: boolean }} props
- */
 export default function NotificationCard({ notification, showReadStatus = true }) {
   const { isRead, markRead } = useReadContext();
   const read = isRead(notification.ID);
   const config = TYPE_CONFIG[notification.Type] || TYPE_CONFIG.Event;
+  const IconComponent = config.icon;
 
-  /** Mark notification as read when the user clicks the card */
   const handleClick = () => {
     if (!read) {
       markRead(notification.ID);
@@ -99,90 +93,126 @@ export default function NotificationCard({ notification, showReadStatus = true }
     }
   };
 
-  Log("frontend", "debug", "component", `NotificationCard rendered — ID=${notification.ID}, read=${read}`);
-
   return (
     <Card
       onClick={handleClick}
       sx={{
         cursor: "pointer",
-        position: "relative",
-        opacity: read ? 0.65 : 1,
-        borderLeft: `3px solid ${config.color}`,
-        transition: "all 0.25s ease",
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        opacity: read ? 0.55 : 1,
+        transition: "all 0.2s ease",
         "&:hover": {
-          opacity: 1,
-          borderLeftWidth: "5px",
+          transform: read ? "none" : "translateY(-1px)",
         },
       }}
     >
-      <CardContent sx={{ py: 2, px: 2.5, "&:last-child": { pb: 2 } }}>
-        {/* Top row: type chip + timestamp */}
-        <Box
+      {/* Header — type label + icon */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          px: 2.5,
+          pt: 2,
+          pb: 0.5,
+        }}
+      >
+        <Typography
+          variant="body2"
           sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            mb: 1.2,
+            fontSize: "0.8rem",
+            fontWeight: 500,
+            color: "text.secondary",
+            letterSpacing: "0.01em",
           }}
         >
-          <Chip
-            icon={config.icon}
-            label={config.label}
-            size="small"
-            sx={{
-              backgroundColor: config.bgColor,
-              color: config.color,
-              border: `1px solid ${config.color}30`,
-              "& .MuiChip-icon": { color: config.color },
-            }}
-          />
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
-            {/* Unread indicator dot */}
-            {showReadStatus && !read && (
-              <Badge
-                variant="dot"
-                sx={{
-                  "& .MuiBadge-dot": {
-                    backgroundColor: "#06b6d4",
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    boxShadow: "0 0 8px rgba(6, 182, 212, 0.6)",
-                  },
-                }}
-              >
-                <FiberManualRecord sx={{ fontSize: 0 }} />
-              </Badge>
-            )}
-
-            <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.78rem" }}>
-              {formatTimestamp(notification.Timestamp)}
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* Notification message */}
-        <Typography
-          variant="body1"
+          {config.label}
+        </Typography>
+        <IconComponent
           sx={{
-            fontWeight: read ? 400 : 600,
-            color: read ? "text.secondary" : "text.primary",
-            lineHeight: 1.5,
+            fontSize: 16,
+            color: "text.disabled",
+          }}
+        />
+      </Box>
+
+      {/* Content — message + timestamp */}
+      <CardContent sx={{ flexGrow: 1, px: 2.5, pt: 1, pb: 1.5 }}>
+        <Typography
+          variant="h6"
+          sx={{
+            fontSize: "1.15rem",
+            fontWeight: 700,
+            color: "text.primary",
+            mb: 0.5,
+            lineHeight: 1.3,
           }}
         >
           {notification.Message}
         </Typography>
-
-        {/* Notification ID (subtle) */}
         <Typography
-          variant="caption"
-          sx={{ color: "text.disabled", mt: 0.8, display: "block", fontSize: "0.7rem" }}
+          variant="body2"
+          sx={{
+            fontSize: "0.75rem",
+            color: "text.secondary",
+            minHeight: "1.5rem",
+          }}
         >
-          ID: {notification.ID}
+          {formatTimestamp(notification.Timestamp)}
         </Typography>
       </CardContent>
+
+      {/* Footer — read status + action */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          px: 2.5,
+          pb: 2,
+          pt: 0,
+        }}
+      >
+        {/* Read/Unread status chip */}
+        {showReadStatus && (
+          <Chip
+            icon={
+              read ? (
+                <CheckCircleOutlined sx={{ fontSize: 14 }} />
+              ) : (
+                <CircleOutlined sx={{ fontSize: 14 }} />
+              )
+            }
+            label={read ? "Read" : "Unread"}
+            size="small"
+            variant="outlined"
+            sx={{
+              fontSize: "0.7rem",
+              fontWeight: 600,
+              height: 26,
+              borderColor: read ? "#d4d4d8" : config.borderColor,
+              color: read ? "#a1a1aa" : config.color,
+              backgroundColor: read ? "transparent" : config.bg,
+              "& .MuiChip-icon": {
+                color: read ? "#a1a1aa" : config.color,
+              },
+            }}
+          />
+        )}
+
+        {/* Type accent dot */}
+        <Box
+          sx={{
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            backgroundColor: read ? "#d4d4d8" : config.color,
+            flexShrink: 0,
+          }}
+        />
+      </Box>
     </Card>
   );
 }

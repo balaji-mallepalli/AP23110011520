@@ -1,12 +1,8 @@
 /**
  * Priority Inbox Page
  *
- * Displays the top N most important notifications, ranked by:
- *   1. Type weight: Placement (3) > Result (2) > Event (1)
- *   2. Recency: newer timestamps win within the same weight
- *
- * Users can select N (10, 15, 20) via a dropdown selector.
- * Unread notifications are visually emphasised at the top.
+ * Displays top N priority-ranked notifications in a clean
+ * dashboard card grid. Unread items appear first, read items below.
  */
 
 import { useEffect, useState } from "react";
@@ -22,8 +18,8 @@ import {
   MenuItem,
   InputLabel,
   Chip,
+  Divider,
 } from "@mui/material";
-import { PriorityHighOutlined } from "@mui/icons-material";
 import NotificationCard from "../components/NotificationCard";
 import { usePriorityInbox } from "../hooks/usePriorityInbox";
 import { useReadContext } from "../state/ReadContext";
@@ -33,7 +29,6 @@ import { Log } from "logging-middleware";
 /*  Configuration                                                      */
 /* ------------------------------------------------------------------ */
 
-/** Available top-N options */
 const TOP_N_OPTIONS = [10, 15, 20, 25, 30];
 
 /* ------------------------------------------------------------------ */
@@ -45,21 +40,17 @@ export default function PriorityInbox() {
   const { priorityNotifications, loading, error } = usePriorityInbox(topN);
   const { isRead } = useReadContext();
 
-  // Separate unread and read notifications for display ordering
   const unreadNotifications = priorityNotifications.filter((n) => !isRead(n.ID));
   const readNotifications = priorityNotifications.filter((n) => isRead(n.ID));
 
-  // Log page load
   useEffect(() => {
     Log("frontend", "info", "page", "Priority Inbox page loaded");
   }, []);
 
-  // Log when topN or render count changes
   useEffect(() => {
     Log("frontend", "info", "component", `PriorityInbox rendered with n=${topN}`);
   }, [topN, priorityNotifications.length]);
 
-  /** Handle top-N selector change */
   const handleTopNChange = (event) => {
     const newN = event.target.value;
     Log("frontend", "info", "component", `PriorityInbox: topN changed to ${newN}`);
@@ -67,35 +58,18 @@ export default function PriorityInbox() {
   };
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: "auto", px: { xs: 2, md: 4 }, py: 4 }}>
+    <Box sx={{ maxWidth: 1200, mx: "auto", px: { xs: 2, md: 3 }, py: 4 }}>
       {/* Page header */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
-          <PriorityHighOutlined
-            sx={{
-              fontSize: 32,
-              background: "linear-gradient(135deg, #f59e0b, #ef4444)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          />
-          <Typography
-            variant="h4"
-            sx={{
-              background: "linear-gradient(135deg, #f59e0b, #ef4444)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            Priority Inbox
-          </Typography>
-        </Box>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" sx={{ mb: 0.5 }}>
+          Priority Inbox
+        </Typography>
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          Your most important notifications, ranked by type priority and recency.
+          Your most important notifications, ranked by type and recency.
         </Typography>
       </Box>
 
-      {/* Controls row — top-N selector + stats */}
+      {/* Controls row */}
       <Box
         sx={{
           display: "flex",
@@ -106,19 +80,18 @@ export default function PriorityInbox() {
           mb: 3,
         }}
       >
-        <FormControl size="small" sx={{ minWidth: 140 }}>
-          <InputLabel id="topn-label" sx={{ color: "text.secondary" }}>
-            Show Top
-          </InputLabel>
+        <FormControl size="small" sx={{ minWidth: 130 }}>
+          <InputLabel id="topn-label">Show Top</InputLabel>
           <Select
             labelId="topn-label"
             value={topN}
             label="Show Top"
             onChange={handleTopNChange}
             sx={{
-              borderRadius: 2,
+              borderRadius: "6px",
+              fontSize: "0.85rem",
               "& .MuiOutlinedInput-notchedOutline": {
-                borderColor: "rgba(255,255,255,0.12)",
+                borderColor: "#e4e4e7",
               },
             }}
           >
@@ -130,83 +103,80 @@ export default function PriorityInbox() {
           </Select>
         </FormControl>
 
-        {/* Stats chips */}
+        {/* Stats */}
         {!loading && (
           <Box sx={{ display: "flex", gap: 1 }}>
             <Chip
               label={`${unreadNotifications.length} Unread`}
               size="small"
+              variant="outlined"
               sx={{
-                backgroundColor: "rgba(6, 182, 212, 0.12)",
-                color: "#06b6d4",
                 fontWeight: 600,
+                fontSize: "0.75rem",
+                borderColor: "#e4e4e7",
+                color: "#18181b",
               }}
             />
             <Chip
               label={`${readNotifications.length} Read`}
               size="small"
+              variant="outlined"
               sx={{
-                backgroundColor: "rgba(148, 163, 184, 0.12)",
-                color: "#94a3b8",
-                fontWeight: 600,
+                fontWeight: 500,
+                fontSize: "0.75rem",
+                borderColor: "#e4e4e7",
+                color: "#a1a1aa",
               }}
             />
           </Box>
         )}
       </Box>
 
-      {/* Loading spinner */}
+      {/* Loading */}
       {loading && (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-          <CircularProgress
-            sx={{
-              color: "#f59e0b",
-              "& .MuiCircularProgress-circle": {
-                strokeLinecap: "round",
-              },
-            }}
-          />
+          <CircularProgress size={28} sx={{ color: "#18181b" }} />
         </Box>
       )}
 
-      {/* Error alert */}
+      {/* Error */}
       {error && (
         <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
           {error}
         </Alert>
       )}
 
-      {/* Priority notification grid — unread first, then read */}
+      {/* Priority notification grid */}
       {!loading && !error && (
-        <Fade in timeout={400}>
+        <Fade in timeout={300}>
           <Box>
             {priorityNotifications.length === 0 ? (
               <Box sx={{ textAlign: "center", py: 8, color: "text.secondary" }}>
-                <Typography variant="h6">No notifications found</Typography>
-                <Typography variant="body2" sx={{ mt: 1 }}>
-                  Check back later for new notifications.
+                <Typography variant="h6" sx={{ fontWeight: 500 }}>
+                  No notifications found
                 </Typography>
               </Box>
             ) : (
               <>
-                {/* Unread notifications section */}
+                {/* Unread section */}
                 {unreadNotifications.length > 0 && (
                   <Box sx={{ mb: 3 }}>
                     <Typography
                       variant="subtitle2"
                       sx={{
-                        color: "#06b6d4",
+                        color: "#18181b",
+                        fontWeight: 600,
+                        fontSize: "0.8rem",
                         textTransform: "uppercase",
-                        letterSpacing: "0.08em",
+                        letterSpacing: "0.05em",
                         mb: 2,
-                        fontWeight: 700,
                       }}
                     >
-                      ● Unread ({unreadNotifications.length})
+                      Unread ({unreadNotifications.length})
                     </Typography>
                     <Grid container spacing={2}>
                       {unreadNotifications.map((notification) => (
-                        <Grid item xs={12} sm={6} md={4} key={notification.ID}>
+                        <Grid item xs={12} sm={6} md={4} lg={3} key={notification.ID}>
                           <NotificationCard notification={notification} />
                         </Grid>
                       ))}
@@ -214,24 +184,30 @@ export default function PriorityInbox() {
                   </Box>
                 )}
 
-                {/* Read notifications section */}
+                {/* Divider between sections */}
+                {unreadNotifications.length > 0 && readNotifications.length > 0 && (
+                  <Divider sx={{ my: 3, borderColor: "#e4e4e7" }} />
+                )}
+
+                {/* Read section */}
                 {readNotifications.length > 0 && (
-                  <Box sx={{ mt: 4 }}>
+                  <Box>
                     <Typography
                       variant="subtitle2"
                       sx={{
-                        color: "text.disabled",
+                        color: "#a1a1aa",
+                        fontWeight: 500,
+                        fontSize: "0.8rem",
                         textTransform: "uppercase",
-                        letterSpacing: "0.08em",
+                        letterSpacing: "0.05em",
                         mb: 2,
-                        fontWeight: 700,
                       }}
                     >
-                      ● Read ({readNotifications.length})
+                      Read ({readNotifications.length})
                     </Typography>
                     <Grid container spacing={2}>
                       {readNotifications.map((notification) => (
-                        <Grid item xs={12} sm={6} md={4} key={notification.ID}>
+                        <Grid item xs={12} sm={6} md={4} lg={3} key={notification.ID}>
                           <NotificationCard notification={notification} />
                         </Grid>
                       ))}

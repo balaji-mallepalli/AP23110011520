@@ -1,14 +1,13 @@
 /**
  * FilterBar Component
  *
- * Renders a row of MUI Chips that allow the user to filter notifications
- * by type (All, Event, Result, Placement). The active filter is visually
- * highlighted with a gradient background.
+ * Clean, monochrome filter tabs using outlined chips.
+ * Active state uses a filled dark chip for clear visual hierarchy.
  */
 
 import { Box, Chip } from "@mui/material";
 import {
-  AllInboxOutlined,
+  InboxOutlined,
   EventOutlined,
   SchoolOutlined,
   WorkOutlined,
@@ -19,26 +18,17 @@ import { Log } from "logging-middleware";
 /*  Filter definitions                                                 */
 /* ------------------------------------------------------------------ */
 
-/**
- * Available filter options. `value: null` means "show all types".
- */
 const FILTERS = [
-  { label: "All", value: null, icon: <AllInboxOutlined sx={{ fontSize: 18 }} /> },
-  { label: "Event", value: "Event", icon: <EventOutlined sx={{ fontSize: 18 }} /> },
-  { label: "Result", value: "Result", icon: <SchoolOutlined sx={{ fontSize: 18 }} /> },
-  { label: "Placement", value: "Placement", icon: <WorkOutlined sx={{ fontSize: 18 }} /> },
+  { label: "All", value: null, icon: <InboxOutlined sx={{ fontSize: 16 }} /> },
+  { label: "Event", value: "Event", icon: <EventOutlined sx={{ fontSize: 16 }} /> },
+  { label: "Result", value: "Result", icon: <SchoolOutlined sx={{ fontSize: 16 }} /> },
+  { label: "Placement", value: "Placement", icon: <WorkOutlined sx={{ fontSize: 16 }} /> },
 ];
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-/**
- * @param {{
- *   activeFilter: string | null,
- *   onFilterChange: (value: string | null) => void
- * }} props
- */
 export default function FilterBar({ activeFilter, onFilterChange }) {
   const handleClick = (value) => {
     Log("frontend", "info", "component", `FilterBar: filter changed to "${value || "all"}"`);
@@ -49,7 +39,7 @@ export default function FilterBar({ activeFilter, onFilterChange }) {
     <Box
       sx={{
         display: "flex",
-        gap: 1.2,
+        gap: 1,
         flexWrap: "wrap",
         mb: 3,
       }}
@@ -65,24 +55,20 @@ export default function FilterBar({ activeFilter, onFilterChange }) {
             onClick={() => handleClick(filter.value)}
             variant={isActive ? "filled" : "outlined"}
             sx={{
-              px: 1,
-              py: 2.5,
-              fontSize: "0.85rem",
-              fontWeight: isActive ? 700 : 500,
-              borderColor: isActive ? "transparent" : "rgba(255,255,255,0.12)",
-              background: isActive
-                ? "linear-gradient(135deg, #06b6d4, #a855f7)"
-                : "transparent",
-              color: isActive ? "#fff" : "text.secondary",
-              transition: "all 0.25s ease",
+              px: 0.5,
+              py: 2.2,
+              fontSize: "0.8rem",
+              fontWeight: isActive ? 600 : 400,
+              borderColor: isActive ? "transparent" : "#e4e4e7",
+              backgroundColor: isActive ? "#18181b" : "transparent",
+              color: isActive ? "#fafafa" : "#71717a",
+              transition: "all 0.15s ease",
               "& .MuiChip-icon": {
-                color: isActive ? "#fff" : "text.secondary",
+                color: isActive ? "#fafafa" : "#a1a1aa",
               },
               "&:hover": {
-                background: isActive
-                  ? "linear-gradient(135deg, #22d3ee, #c084fc)"
-                  : "rgba(255,255,255,0.06)",
-                borderColor: isActive ? "transparent" : "rgba(255,255,255,0.2)",
+                backgroundColor: isActive ? "#27272a" : "#f4f4f5",
+                borderColor: isActive ? "transparent" : "#d4d4d8",
               },
             }}
           />

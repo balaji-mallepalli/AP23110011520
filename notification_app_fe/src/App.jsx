@@ -1,17 +1,14 @@
 /**
  * App — Root Component
  *
- * Sets up React Router with two routes:
- *   1. /                — All Notifications page
- *   2. /priority-inbox  — Priority Inbox page
- *
- * Includes a persistent top navigation bar for switching between pages.
+ * Clean, minimal navigation bar with two routes.
+ * Monochrome design matching the dashboard card aesthetic.
  */
 
 import { BrowserRouter, Routes, Route, NavLink, useLocation } from "react-router-dom";
-import { Box, AppBar, Toolbar, Typography, Button } from "@mui/material";
+import { Box, AppBar, Toolbar, Typography, Button, Divider } from "@mui/material";
 import {
-  NotificationsOutlined,
+  NotificationsNoneOutlined,
   PriorityHighOutlined,
 } from "@mui/icons-material";
 import AllNotifications from "./pages/AllNotifications";
@@ -22,22 +19,18 @@ import { Log } from "logging-middleware";
 /*  Navigation bar                                                     */
 /* ------------------------------------------------------------------ */
 
-/**
- * Persistent navigation bar with gradient background and route links.
- */
 function NavBar() {
   const location = useLocation();
 
-  Log("frontend", "debug", "component", `NavBar rendered — current path: ${location.pathname}`);
+  Log("frontend", "debug", "component", `NavBar rendered — path: ${location.pathname}`);
 
   return (
     <AppBar
       position="sticky"
       elevation={0}
       sx={{
-        background: "linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        backdropFilter: "blur(20px)",
+        backgroundColor: "#ffffff",
+        borderBottom: "1px solid #e4e4e7",
       }}
     >
       <Toolbar
@@ -45,41 +38,42 @@ function NavBar() {
           maxWidth: 1200,
           width: "100%",
           mx: "auto",
-          px: { xs: 2, md: 4 },
+          px: { xs: 2, md: 3 },
           display: "flex",
           justifyContent: "space-between",
+          minHeight: { xs: 56 },
         }}
       >
         {/* Brand */}
         <Typography
           variant="h6"
           sx={{
-            fontWeight: 800,
-            background: "linear-gradient(135deg, #06b6d4, #a855f7)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
+            fontWeight: 700,
+            color: "#09090b",
+            fontSize: "1rem",
             letterSpacing: "-0.02em",
           }}
         >
-          🔔 CampusNotify
+          CampusNotify
         </Typography>
 
         {/* Nav links */}
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box sx={{ display: "flex", gap: 0.5 }}>
           <Button
             component={NavLink}
             to="/"
-            startIcon={<NotificationsOutlined />}
+            startIcon={<NotificationsNoneOutlined sx={{ fontSize: 18 }} />}
+            size="small"
             sx={{
-              color: location.pathname === "/" ? "#06b6d4" : "text.secondary",
-              fontWeight: location.pathname === "/" ? 700 : 500,
+              color: location.pathname === "/" ? "#09090b" : "#71717a",
+              fontWeight: location.pathname === "/" ? 600 : 400,
+              fontSize: "0.85rem",
               textTransform: "none",
-              borderRadius: 2,
-              px: 2,
-              backgroundColor:
-                location.pathname === "/" ? "rgba(6, 182, 212, 0.08)" : "transparent",
+              borderRadius: "6px",
+              px: 1.5,
+              backgroundColor: location.pathname === "/" ? "#f4f4f5" : "transparent",
               "&:hover": {
-                backgroundColor: "rgba(6, 182, 212, 0.12)",
+                backgroundColor: "#f4f4f5",
               },
             }}
           >
@@ -88,19 +82,18 @@ function NavBar() {
           <Button
             component={NavLink}
             to="/priority-inbox"
-            startIcon={<PriorityHighOutlined />}
+            startIcon={<PriorityHighOutlined sx={{ fontSize: 18 }} />}
+            size="small"
             sx={{
-              color: location.pathname === "/priority-inbox" ? "#f59e0b" : "text.secondary",
-              fontWeight: location.pathname === "/priority-inbox" ? 700 : 500,
+              color: location.pathname === "/priority-inbox" ? "#09090b" : "#71717a",
+              fontWeight: location.pathname === "/priority-inbox" ? 600 : 400,
+              fontSize: "0.85rem",
               textTransform: "none",
-              borderRadius: 2,
-              px: 2,
-              backgroundColor:
-                location.pathname === "/priority-inbox"
-                  ? "rgba(245, 158, 11, 0.08)"
-                  : "transparent",
+              borderRadius: "6px",
+              px: 1.5,
+              backgroundColor: location.pathname === "/priority-inbox" ? "#f4f4f5" : "transparent",
               "&:hover": {
-                backgroundColor: "rgba(245, 158, 11, 0.12)",
+                backgroundColor: "#f4f4f5",
               },
             }}
           >
@@ -119,12 +112,7 @@ function NavBar() {
 export default function App() {
   return (
     <BrowserRouter>
-      <Box
-        sx={{
-          minHeight: "100vh",
-          backgroundColor: "background.default",
-        }}
-      >
+      <Box sx={{ minHeight: "100vh", backgroundColor: "#fafafa" }}>
         <NavBar />
         <Routes>
           <Route path="/" element={<AllNotifications />} />
