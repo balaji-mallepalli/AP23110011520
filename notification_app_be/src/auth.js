@@ -1,16 +1,4 @@
-/**
- * Auth Module
- *
- * Handles authentication with the evaluation service API.
- * Obtains a Bearer token and sets it on the logging middleware
- * so all subsequent Log() calls are authenticated.
- */
-
 import { Log, setToken } from "logging-middleware";
-
-/* ------------------------------------------------------------------ */
-/*  Configuration — credentials for the evaluation service            */
-/* ------------------------------------------------------------------ */
 
 const AUTH_ENDPOINT = "http://20.207.122.201/evaluation-service/auth";
 
@@ -23,19 +11,8 @@ const CREDENTIALS = {
   clientSecret: "xcQfdntQFkkatfMc",
 };
 
-/* ------------------------------------------------------------------ */
-/*  Public API                                                         */
-/* ------------------------------------------------------------------ */
-
-/**
- * Authenticate with the evaluation service and return the Bearer token.
- * Also sets the token on the logging middleware for future Log() calls.
- *
- * @returns {Promise<string>} The access_token string
- * @throws {Error} If authentication fails
- */
 export async function authenticate() {
-  Log("backend", "info", "auth", "Starting authentication with evaluation service");
+  Log("backend", "info", "auth", "Starting authentication");
 
   const response = await fetch(AUTH_ENDPOINT, {
     method: "POST",
@@ -44,17 +21,15 @@ export async function authenticate() {
   });
 
   if (!response.ok) {
-    Log("backend", "error", "auth", `Authentication failed with status ${response.status}`);
+    Log("backend", "error", "auth", `Authentication failed: HTTP ${response.status}`);
     throw new Error(`Auth failed: HTTP ${response.status}`);
   }
 
   const data = await response.json();
   const token = data.access_token;
 
-  // Set the token on the logging middleware so all future logs are authenticated
   setToken(token);
-
-  Log("backend", "info", "auth", "Authentication successful — token acquired");
+  Log("backend", "info", "auth", "Authentication successful");
 
   return token;
 }

@@ -1,38 +1,11 @@
-/**
- * Fetch Notifications Module
- *
- * Retrieves all notifications from the evaluation service API,
- * handling pagination automatically. Returns the complete list
- * of notification objects.
- */
-
 import { Log } from "logging-middleware";
 
-/* ------------------------------------------------------------------ */
-/*  Configuration                                                      */
-/* ------------------------------------------------------------------ */
-
 const NOTIFICATIONS_ENDPOINT = "http://20.207.122.201/evaluation-service/notifications";
-
-/** Maximum notifications to fetch per page (API accepts up to 10) */
 const PAGE_SIZE = 10;
-
-/** Safety limit to prevent infinite pagination loops */
 const MAX_PAGES = 50;
 
-/* ------------------------------------------------------------------ */
-/*  Public API                                                         */
-/* ------------------------------------------------------------------ */
-
-/**
- * Fetch all notifications from the evaluation service.
- * Paginates automatically until no more results are returned.
- *
- * @param {string} token — Bearer access token
- * @returns {Promise<Array<{ID: string, Type: string, Message: string, Timestamp: string}>>}
- */
 export async function fetchAllNotifications(token) {
-  Log("backend", "info", "service", "Starting notification fetch from evaluation service");
+  Log("backend", "info", "service", "Starting notification fetch");
 
   const allNotifications = [];
   let currentPage = 1;
@@ -58,15 +31,10 @@ export async function fetchAllNotifications(token) {
 
     const data = await response.json();
     const pageNotifications = data.notifications || [];
-
     allNotifications.push(...pageNotifications);
 
-    Log(
-      "backend", "debug", "service",
-      `Page ${currentPage} returned ${pageNotifications.length} notifications`
-    );
+    Log("backend", "debug", "service", `Page ${currentPage}: ${pageNotifications.length} notifications`);
 
-    // If we got fewer results than the page size, we've reached the end
     if (pageNotifications.length < PAGE_SIZE) {
       hasMore = false;
     } else {
@@ -74,10 +42,6 @@ export async function fetchAllNotifications(token) {
     }
   }
 
-  Log(
-    "backend", "info", "service",
-    `Fetch complete — ${allNotifications.length} total notifications retrieved`
-  );
-
+  Log("backend", "info", "service", `Fetch complete — ${allNotifications.length} total`);
   return allNotifications;
 }
