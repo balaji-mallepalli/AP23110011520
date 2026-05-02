@@ -1,0 +1,9 @@
+{
+  "name": "logging-middleware",
+  "version": "1.0.0",
+  "description": "Reusable logging middleware for campus notification system",
+  "main": "index.js",
+  "type": "module",
+  "keywords": ["logging", "middleware"],
+  "license": "MIT"
+}
