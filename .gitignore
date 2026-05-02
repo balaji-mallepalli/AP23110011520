@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Screenshots (local only)
+screenshots/
+
 # Build output
 dist/
 build/
